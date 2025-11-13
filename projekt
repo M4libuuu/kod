@@ -1,0 +1,50 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+class Program
+{
+	struct Point { public int X, Y; public Point(int x, int y) { X = x; Y = y; } }
+
+	static int width = 20;
+	static int height = 20;
+	static LinkedList<Point> snake = new LinkedList<Point>();
+	static HashSet<int> snakeSet = new HashSet<int>();
+	static Point food;
+	static Random rnd = new Random();
+	static int score = 0;
+	static int speed = 120;
+	static int dx = 1, dy = 0;
+	static bool gameOver = false;
+	static bool directionChanged = false;
+	static object lockObj = new object();
+
+	static void Main()
+	{
+		Console.OutputEncoding = System.Text.Encoding.UTF8;
+		Console.CursorVisible = false;
+
+		InitGame();
+		Thread inputThread = new Thread(InputLoop) { IsBackground = true };
+		inputThread.Start();
+
+		DrawBorder();
+		DrawScore();
+
+		foreach (var p in snake) DrawAt(p.X, p.Y, "🟩");
+
+		PlaceFood();
+		DrawAt(food.X, food.Y, "🍎");
+
+		while (!gameOver)
+		{
+			Thread.Sleep(speed);
+			Update();
+		}
+
+		Console.SetCursorPosition(0, height + 3);
+		Console.CursorVisible = true;
+		Console.WriteLine();
+		Console.WriteLine($"💀 Game Over!  Score: {score} 🏆");
+		Console.WriteLine("Press any key to exit...");
+		Console.ReadKey(true);
